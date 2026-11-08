@@ -6,11 +6,19 @@ on:
   pull_request:
     types: [opened, synchronize]
 
+env:
+  TF_CLOUD_ORGANIZATION: "olas_de_gracia"
+  TF_API_TOKEN: "${{ secrets.TF_API_TOKEN }}"
+  TF_WORKSPACE: "web"
+
 jobs:
   build:
     name: Build and Test
     timeout-minutes: 15
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
 
     steps:
       - name: Check out code
