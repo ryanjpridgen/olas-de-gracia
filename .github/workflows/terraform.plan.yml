@@ -56,10 +56,11 @@ jobs:
       - name: Terraform Config Upload
         uses: hashicorp/tfc-workflows-github/actions/upload-configuration@v1.3.2
         id: upload
+        env:
+          TF_WORKSPACE: "web-${{ github.env.ENVIRONMENT }}"
         with:
           token: ${{ env.TF_API_TOKEN }}
-          organization: ${{ env.TF_CLOUD_ORGANIZATION }} 
-          workspace: "web-${{ job.environment }}"
+          organization: ${{ env.TF_CLOUD_ORGANIZATION }}
           directory: ./
           speculative: true
 
