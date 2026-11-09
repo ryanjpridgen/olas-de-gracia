@@ -16,3 +16,9 @@ terraform {
 }
 
 provider "cloudflare" {}
+
+resource "cloudflare_d1_database" "bible_verses" {
+  account_id = var.cloudflare_account_id
+  name = "bible_verses"
+  jurisdiction = "us"
+}
