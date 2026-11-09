@@ -60,7 +60,7 @@ jobs:
           token: ${{ env.TF_API_TOKEN }}
           organization: ${{ env.TF_CLOUD_ORGANIZATION }}
           workspace: "web-${{ env.ENVIRONMENT }}"
-          directory: ./
+          directory: "./"
           speculative: true
 
       - name: Terraform Plan
