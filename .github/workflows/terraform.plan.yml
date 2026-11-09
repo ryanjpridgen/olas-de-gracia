@@ -15,8 +15,8 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-    environment:
-      name: ${{ github.env.ENVIRONMENT }}
+    #environment:
+    #  name: ${{ github.env.ENVIRONMENT }}
     steps:
       - uses: actions/checkout@v3
 
@@ -50,8 +50,8 @@ jobs:
 
   plan:
     runs-on: ubuntu-latest
-    environment:
-      name: ${{ github.env.ENVIRONMENT }}
+    #environment:
+    #  name: ${{ github.env.ENVIRONMENT }}
     steps:
       - uses: actions/checkout@v3
 
