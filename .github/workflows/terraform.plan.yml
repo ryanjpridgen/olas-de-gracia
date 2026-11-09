@@ -50,8 +50,6 @@ jobs:
 
   plan:
     runs-on: ubuntu-latest
-    env:
-      TF_WORKSPACE: "web-${{ github.env.ENVIRONMENT }}"
     environment:
       name: ${{ github.env.ENVIRONMENT }}
     steps:
@@ -61,7 +59,7 @@ jobs:
         with:
           token: ${{ env.TF_API_TOKEN }}
           organization: ${{ env.TF_CLOUD_ORGANIZATION }} 
-          workspace: ${{ env.TF_WORKSPACE }}
+          workspace: "web-${{ job.environment }}"
           directory: ./
           speculative: true
 
@@ -69,7 +67,7 @@ jobs:
         uses: hashicorp/tfc-workflows-github/actions/create-run@v1.3.2
         id: run
         with:
-          workspace: ${{ env.TF_WORKSPACE }}
+          workspace: "web-${{ job.environment }}"
           configuration_version: ${{ steps.upload.outputs.configuration_version_id }}
           plan_only: true
           message: "Github ${{ github.ref_name }}@${{ github.sha }}"
