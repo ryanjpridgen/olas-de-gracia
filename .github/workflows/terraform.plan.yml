@@ -50,6 +50,8 @@ jobs:
 
   plan:
     runs-on: ubuntu-latest
+    env:
+      TF_WORKSPACE: "web-${{ github.env.ENVIRONMENT }}"
     environment:
       name: ${{ github.env.ENVIRONMENT }}
     steps:
@@ -59,7 +61,7 @@ jobs:
         with:
           token: ${{ env.TF_API_TOKEN }}
           organization: ${{ env.TF_CLOUD_ORGANIZATION }} 
-          workspace: ${{ env.ENVIRONMENT }}
+          workspace: ${{ env.TF_WORKSPACE }}
           directory: ./
           speculative: true
 
