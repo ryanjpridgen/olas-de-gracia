@@ -31,7 +31,7 @@
 		"dev": "vite dev",
 		"build": "vite build",
 		"start": "vite preview",
-		"deploy": "vinext-cloudflare deploy",
+		"deploy": "[ \"$ENVIRONMENT\" = \"production\" ] && vinext-cloudflare deploy || vinext-cloudflare previews deploy $ENVIRONMENT",
 		"preview": "pnpm run build && pnpm run start",
 		"cf-typegen": "cf workers types",
    		"lint": "eslint --max-warnings 0"

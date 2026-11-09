@@ -19,5 +19,6 @@ export default defineConfig({
         name: `odg-${process.env.ENVIRONMENT}`,
       }),
     },
+    previewUrls: true
   }),
 });
