@@ -11,7 +11,8 @@
   "devDependencies": {
     "prettier": "3.9.6",
     "turbo": "^2.11.10",
-    "typescript": "7.0.2"
+    "typescript": "7.0.2",
+    "wrangler": "^4.158.0"
   },
   "packageManager": "pnpm@11.25.0",
   "engines": {
