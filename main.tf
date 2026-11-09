@@ -26,5 +26,5 @@ resource "cloudflare_d1_database" "odg" {
 }
 
 output "database_id" {
-  value = cloudflare_d1_database.bible_verses.id
+  value = cloudflare_d1_database.odg.id
 }
