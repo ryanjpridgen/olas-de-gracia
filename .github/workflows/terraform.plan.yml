@@ -53,6 +53,8 @@ jobs:
     environment:
       name: ${{ github.env.ENVIRONMENT }}
     steps:
+      - uses: actions/checkout@v3
+
       - name: Terraform Config Upload
         uses: hashicorp/tfc-workflows-github/actions/upload-configuration@v1.3.2
         id: upload
