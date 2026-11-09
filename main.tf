@@ -10,7 +10,7 @@ terraform {
       organization = "olas_de_gracia"
 
       workspaces {
-        prefix = "web-"
+        name = "web-development"
       }
     }
 
