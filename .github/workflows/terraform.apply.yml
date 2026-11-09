@@ -88,9 +88,11 @@ jobs:
         env:
           D1_DATABASE_ID: ${{ steps.d1.outputs.database_id }}
         run: |
-          jq --arg env "$ENVIRONMENT" --arg id "$D1_DATABASE_ID" \
-            '.d1_databases[0].database_id = $id' \
-            '.d1_databases[0].database_name = odg-$env' \
+          jq \
+            --arg env "$ENVIRONMENT" \
+            --arg id "$D1_DATABASE_ID" \
+            '.d1_databases[0].database_id = $id |
+             .d1_databases[0].database_name = ("odg-" + $env)' \
             wrangler.template.json > wrangler.json
 
       - name: Apply SQL Migrations

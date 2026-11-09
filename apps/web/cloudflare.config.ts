@@ -2,7 +2,7 @@ import { bindings, defineConfig, defineWorker } from "cf/config";
 
 export default defineConfig({
   worker: defineWorker({
-    name: "web",
+    name: "olas-de-gracia",
     entrypoint: "vinext/server/fetch-handler",
     compatibilityDate: "2026-11-09",
     compatibilityFlags: ["nodejs_compat"],
@@ -16,10 +16,7 @@ export default defineConfig({
       IMAGES: bindings.images(),
       DB: bindings.d1({
         id: process.env.D1_DATABASE_ID,
-        dev: {
-          remote: typeof process.env.D1_DATABASE_ID === "string",
-        },
-        name: "bible_verses",
+        name: `odg-${process.env.ENVIRONMENT}`,
       }),
     },
   }),
