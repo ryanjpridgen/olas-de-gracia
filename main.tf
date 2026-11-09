@@ -10,9 +10,11 @@ terraform {
       organization = "olas_de_gracia"
 
       workspaces {
-        name = "web"
+        prefix = "web-"
       }
     }
+
+    required_version = "1.17.1"
 }
 
 provider "cloudflare" {}
