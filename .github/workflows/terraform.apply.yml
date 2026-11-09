@@ -3,9 +3,12 @@ name: "Terraform Apply"
 on:
   push:
     branches:
+      - development
+      - staging
       - main
 
 env:
+  ENVIRONMENT: ${{ github.ref_name == 'main' && 'production' || github.ref_name == 'staging' && 'staging' || 'development' }}
   TF_CLOUD_ORGANIZATION: "${{ secrets.TF_ORG }}"
   TF_API_TOKEN: "${{ secrets.TF_API_TOKEN }}"
   TF_WORKSPACE: "web"
@@ -15,6 +18,8 @@ jobs:
   terraform:
     name: "Terraform Apply"
     runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.env.ENVIRONMENT }}
     permissions:
       contents: read
     steps:
@@ -52,14 +57,14 @@ jobs:
         uses: hashicorp/tfc-workflows-github/actions/upload-configuration@v1.0.0
         id: apply-upload
         with:
-          workspace: ${{ env.TF_WORKSPACE }}
+          workspace: "web-${{ env.ENVIRONMENT }}
           directory: ${{ env.CONFIG_DIRECTORY }}
 
       - name: Create Apply Run
         uses: hashicorp/tfc-workflows-github/actions/create-run@v1.0.0
         id: apply-run
         with:
-          workspace: ${{ env.TF_WORKSPACE }}
+          workspace: "web-${{ env.ENVIRONMENT }}"
           configuration_version: ${{ steps.apply-upload.outputs.configuration_version_id }}
 
       - name: Apply
@@ -80,15 +85,16 @@ jobs:
         env:
           D1_DATABASE_ID: ${{ steps.d1.outputs.database_id }}
         run: |
-          jq --arg id "$D1_DATABASE_ID" \
+          jq --arg env "$ENVIRONMENT" --arg id "$D1_DATABASE_ID" \
             '.d1_databases[0].database_id = $id' \
+            '.d1_databases[0].name = odg-$env' \
             wrangler.template.json > wrangler.json
 
       - name: Apply SQL Migrations
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: pnpm wrangler d1 migrations apply bible_verses --remote --config wrangler.json
+        run: pnpm wrangler d1 migrations apply web-$ENVIRONMENT --remote --config wrangler.json
 
       - name: Build
         env:
