@@ -7,7 +7,7 @@ terraform {
     }
 
     cloud {
-      organization = "olas_de_gracias"
+      organization = "olas_de_gracia"
     }
 
     required_version = "1.17.1"
