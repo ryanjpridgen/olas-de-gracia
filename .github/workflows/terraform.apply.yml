@@ -57,7 +57,7 @@ jobs:
         uses: hashicorp/tfc-workflows-github/actions/upload-configuration@v1.0.0
         id: apply-upload
         with:
-          workspace: "web-${{ env.ENVIRONMENT }}
+          workspace: "web-${{ env.ENVIRONMENT }}"
           directory: ${{ env.CONFIG_DIRECTORY }}
 
       - name: Create Apply Run
