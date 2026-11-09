@@ -2,20 +2,21 @@ name: "Terraform Plan"
 
 on:
   pull_request:
+    branches:
+      - development
+      - staging
+      - main
 
 env:
+  ENVIRONMENT: ${{ github.ref_name == 'main' && 'production' || github.ref_name == 'staging' && 'staging' || 'development' }}
   TF_CLOUD_ORGANIZATION: "${{ secrets.TF_ORG }}"
   TF_API_TOKEN: "${{ secrets.TF_API_TOKEN }}"
-  TF_WORKSPACE: "web"
-  CONFIG_DIRECTORY: "./"
 
 jobs:
-  terraform-cloud-speculative-run:
+  build:
     runs-on: ubuntu-latest
-    ## OPTIONAL: can scope variables to this specific job
-    ## Example:
-    # env:
-    #  TF_CLOUD_ORGANIZATION: ${{ secrets.TF_CLOUD_ORG }}
+    #environment:
+    #  name: ${{ github.env.ENVIRONMENT }}
     steps:
       - uses: actions/checkout@v3
 
@@ -28,8 +29,6 @@ jobs:
             ${{ runner.os }}-turbo-
 
       - uses: pnpm/action-setup@v3
-        with:
-          version: 8
 
       - name: Setup Node.js environment
         uses: actions/setup-node@v4
@@ -40,30 +39,39 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Prettier
+        run: pnpm format --check
+
+      - name: Lint
+        run: pnpm lint
+
       - name: Build
         run: pnpm build
 
-      - uses: hashicorp/tfc-workflows-github/actions/upload-configuration@v1.3.2
+  plan:
+    runs-on: ubuntu-latest
+    #environment:
+    #  name: ${{ github.env.ENVIRONMENT }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Terraform Config Upload
+        uses: hashicorp/tfc-workflows-github/actions/upload-configuration@v1.3.2
         id: upload
         with:
           token: ${{ env.TF_API_TOKEN }}
-          organization: ${{ env.TF_CLOUD_ORGANIZATION }} 
-          workspace: ${{ env.TF_WORKSPACE }}
-          directory: ${{ env.CONFIG_DIRECTORY }}
+          organization: ${{ env.TF_CLOUD_ORGANIZATION }}
+          workspace: "web-${{ env.ENVIRONMENT }}"
+          directory: "./"
           speculative: true
 
-      - uses: hashicorp/tfc-workflows-github/actions/create-run@v1.3.2
+      - name: Terraform Plan
+        uses: hashicorp/tfc-workflows-github/actions/create-run@v1.3.2
         id: run
-        ## run may fail, if so continue to output PR comment
-        ## step.terraform-cloud-check-run-status will fail job after pr comment is created/updated.
-        continue-on-error: true
         with:
-          workspace: ${{ env.TF_WORKSPACE }}
+          workspace: "web-${{ env.ENVIRONMENT }}"
           configuration_version: ${{ steps.upload.outputs.configuration_version_id }}
           plan_only: true
-          ## OPTIONAL: set your own message for run. A default message will be defined for you.
-          ## Example:
-          # message: "Triggered From GitHub Actions CI ${{ github.sha }}"
 
       - uses: hashicorp/tfc-workflows-github/actions/plan-output@v1.3.2
         id: plan-output

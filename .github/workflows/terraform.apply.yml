@@ -3,21 +3,25 @@ name: "Terraform Apply"
 on:
   push:
     branches:
+      - development
+      - staging
       - main
 
 env:
+  ENVIRONMENT: ${{ github.ref_name == 'main' && 'production' || github.ref_name == 'staging' && 'staging' || 'development' }}
   TF_CLOUD_ORGANIZATION: "${{ secrets.TF_ORG }}"
   TF_API_TOKEN: "${{ secrets.TF_API_TOKEN }}"
-  TF_WORKSPACE: "web"
+  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
   CONFIG_DIRECTORY: "./"
-
 
 jobs:
   terraform:
     name: "Terraform Apply"
     runs-on: ubuntu-latest
-    permissions: # granular permissions
-      # so GitHub can check out this repo using the default github.token
+    environment:
+      name: ${{ github.env.ENVIRONMENT }}
+    permissions:
       contents: read
     steps:
       - name: Checkout
@@ -32,8 +36,6 @@ jobs:
             ${{ runner.os }}-turbo-
 
       - uses: pnpm/action-setup@v3
-        with:
-          version: 8
 
       - name: Setup Node.js environment
         uses: actions/setup-node@v4
@@ -44,29 +46,28 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Build
-        run: pnpm build
-
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
       - name: Terraform Init
+        env:
+          TF_WORKSPACE: "web-${{ env.ENVIRONMENT }}"
         run: terraform init
 
       - name: Upload Configuration
         uses: hashicorp/tfc-workflows-github/actions/upload-configuration@v1.0.0
         id: apply-upload
         with:
-          workspace: ${{ env.TF_WORKSPACE }}
+          workspace: "web-${{ env.ENVIRONMENT }}"
           directory: ${{ env.CONFIG_DIRECTORY }}
 
       - name: Create Apply Run
         uses: hashicorp/tfc-workflows-github/actions/create-run@v1.0.0
         id: apply-run
         with:
-          workspace: ${{ env.TF_WORKSPACE }}
+          workspace: "web-${{ env.ENVIRONMENT }}"
           configuration_version: ${{ steps.apply-upload.outputs.configuration_version_id }}
 
       - name: Apply
@@ -79,6 +80,8 @@ jobs:
 
       - name: Get D1 database ID
         id: d1
+        env:
+          TF_WORKSPACE: "web-${{ env.ENVIRONMENT }}"
         run: |
           D1_DATABASE_ID=$(terraform output -raw database_id)
           echo "database_id=$D1_DATABASE_ID" >> "$GITHUB_OUTPUT"
@@ -87,12 +90,23 @@ jobs:
         env:
           D1_DATABASE_ID: ${{ steps.d1.outputs.database_id }}
         run: |
-          jq --arg id "$D1_DATABASE_ID" \
-            '.d1_databases[0].database_id = $id' \
+          jq \
+            --arg env "$ENVIRONMENT" \
+            --arg id "$D1_DATABASE_ID" \
+            '.d1_databases[0].database_id = $id |
+             .d1_databases[0].database_name = ("odg-" + $env)' \
             wrangler.template.json > wrangler.json
 
       - name: Apply SQL Migrations
+        run: pnpm wrangler d1 migrations apply odg-$ENVIRONMENT --remote --config wrangler.json
+
+      - name: Build
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: pnpm wrangler d1 migrations apply bible_verses --remote --config wrangler.json
+          D1_DATABASE_ID: ${{ steps.d1.outputs.database_id }}
+        run: pnpm build
+
+      - name: Deploy
+        env:
+          D1_DATABASE_ID: ${{ steps.d1.outputs.database_id }}
+        run: pnpm deploy
+

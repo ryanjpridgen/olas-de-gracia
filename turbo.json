@@ -5,7 +5,12 @@
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": [".next/**", "!.next/cache/**", "!.next/dev/**"]
+      "outputs": [".next/**", "!.next/cache/**", "!.next/dev/**"],
+      "env": ["D1_DATABASE_ID"]
+    },
+    "deploy": {
+      "outputs": [".vinext/**", ".cloudflare/**"],
+      "env": ["CLOUDFLARE_API_TOKEN", "CLOUDFLARE_ACCOUNT_ID"]
     },
     "lint": {
       "dependsOn": ["^lint"]
@@ -17,5 +22,6 @@
       "cache": false,
       "persistent": true
     }
-  }
+  },
+  "globalEnv": ["ENVIRONMENT"]
 }

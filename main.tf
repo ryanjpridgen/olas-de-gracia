@@ -8,21 +8,19 @@ terraform {
 
     cloud {
       organization = "olas_de_gracia"
-
-      workspaces {
-        name = "web"
-      }
     }
+
+    required_version = "1.17.1"
 }
 
 provider "cloudflare" {}
 
-resource "cloudflare_d1_database" "bible_verses" {
+resource "cloudflare_d1_database" "odg" {
   account_id = var.cloudflare_account_id
-  name = "bible_verses"
+  name = "odg-${var.environment}"
   jurisdiction = "us"
 }
 
 output "database_id" {
-  value = cloudflare_d1_database.bible_verses.id
+  value = cloudflare_d1_database.odg.id
 }

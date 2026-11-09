@@ -4,8 +4,8 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "bible_verses",
-      "database_id": "__D1_DATABASE_ID__",
+      "database_name": "odg-development",
+      "database_id": "",
       "migrations_dir": "migrations"
     }
   ]
