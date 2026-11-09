@@ -7,10 +7,10 @@ terraform {
     }
 
     cloud {
-      organization = "olas_de_gracia"
+      organization = "olas_de_gracias"
 
       workspaces {
-        prefix = "web-"
+        name = "web-development"
       }
     }
 
@@ -19,9 +19,9 @@ terraform {
 
 provider "cloudflare" {}
 
-resource "cloudflare_d1_database" "bible_verses" {
+resource "cloudflare_d1_database" "odg" {
   account_id = var.cloudflare_account_id
-  name = "bible_verses"
+  name = "odg-${var.environment}"
   jurisdiction = "us"
 }
 
