@@ -51,7 +51,7 @@ jobs:
   plan:
     runs-on: ubuntu-latest
     environment:
-      name: ${{ env.ENVIRONMENT }}
+      name: ${{ github.env.ENVIRONMENT }}
     steps:
       - name: Terraform Config Upload
         uses: hashicorp/tfc-workflows-github/actions/upload-configuration@v1.3.2
