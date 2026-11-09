@@ -81,3 +81,16 @@ terraform.rc
 # Optional: ignore plan files saved before destroying Terraform configuration
 # Uncomment the line below if you want to ignore planout files.
 # planout
+
+# Next.js
+.next
+next-env.d.ts
+/dist/
+.vinext/
+.cloudflare/
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+!.env.example
