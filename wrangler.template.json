@@ -1,0 +1,12 @@
+{
+  "name": "olas-de-gracia",
+  "compatibility_date": "2026-11-08",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "bible_verses",
+      "database_id": "__D1_DATABASE_ID__",
+      "migrations_dir": "migrations"
+    }
+  ]
+}

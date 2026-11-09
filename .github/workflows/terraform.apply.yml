@@ -47,6 +47,14 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+
+      - name: Terraform Init
+        run: terraform init
+
       - name: Upload Configuration
         uses: hashicorp/tfc-workflows-github/actions/upload-configuration@v1.0.0
         id: apply-upload
@@ -69,8 +77,22 @@ jobs:
           run: ${{ steps.apply-run.outputs.run_id }}
           comment: "Apply Run from GitHub Actions CI ${{ github.sha }}"
 
+      - name: Get D1 database ID
+        id: d1
+        run: |
+          D1_DATABASE_ID=$(terraform output -raw database_id)
+          echo "database_id=$D1_DATABASE_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Generate Wrangler configuration
+        env:
+          D1_DATABASE_ID: ${{ steps.d1.outputs.database_id }}
+        run: |
+          jq --arg id "$D1_DATABASE_ID" \
+            '.d1_databases[0].database_id = $id' \
+            wrangler.template.json > wrangler.json
+
       - name: Apply SQL Migrations
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: pnpm wrangler d1 migrations apply bible_verses --remote
+        run: pnpm wrangler d1 migrations apply bible_verses --remote --config wrangler.json

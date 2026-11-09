@@ -22,3 +22,7 @@ resource "cloudflare_d1_database" "bible_verses" {
   name = "bible_verses"
   jurisdiction = "us"
 }
+
+output "database_id" {
+  value = cloudflare_d1_database.bible_verses.id
+}
