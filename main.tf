@@ -8,10 +8,6 @@ terraform {
 
     cloud {
       organization = "olas_de_gracias"
-
-      workspaces {
-        name = "web-development"
-      }
     }
 
     required_version = "1.17.1"
