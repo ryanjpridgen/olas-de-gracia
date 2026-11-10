@@ -19,7 +19,8 @@ export const nextJsConfig = [
     "next-env.d.ts",
     ".cloudflare/**",
     ".vinext/**",
-    "dist/**"
+    "dist/**",
+    "public"
   ]),
   {
     languageOptions: {
