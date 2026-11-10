@@ -17,6 +17,9 @@ export default defineConfig({
       DB: bindings.d1({
         id: process.env.D1_DATABASE_ID,
         name: `odg-${process.env.ENVIRONMENT}`,
+        dev: {
+          remote: true,
+        },
       }),
     },
     previewUrls: true,

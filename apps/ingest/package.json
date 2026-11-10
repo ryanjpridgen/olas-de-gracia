@@ -1,0 +1,15 @@
+{
+	"name": "ingest",
+	"version": "0.0.0",
+	"private": true,
+	"scripts": {
+		"deploy": "wrangler deploy",
+		"start": "wrangler dev",
+		"dev": "wrangler dev",
+		"cf-typegen": "wrangler types"
+	},
+	"devDependencies": {
+		"@types/node": "^26.6.6",
+		"typescript": "7.0.2"
+	}
+}
