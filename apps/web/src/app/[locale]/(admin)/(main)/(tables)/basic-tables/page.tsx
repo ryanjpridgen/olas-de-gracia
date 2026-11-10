@@ -5,8 +5,8 @@ import TableFour from "@/components/main/tables/basic-tables/table-four";
 import TableOne from "@/components/main/tables/basic-tables/table-one";
 import TableThree from "@/components/main/tables/basic-tables/table-three";
 import TableTwo from "@/components/main/tables/basic-tables/table-two";
-
 import { Metadata } from "next";
+import { Suspense } from "react";
 
 export const metadata: Metadata = {
   title: "Next.js Basic Data Table | TailAdmin - Next.js Dashboard Template",
@@ -20,7 +20,9 @@ export default function BasicTables() {
       <PageBreadcrumb pageTitle="Basic Tables" />
       <div className="space-y-6">
         <ComponentCard title="Basic Table 1">
-          <TableOne />
+          <Suspense fallback={<div>Loading...</div>}>
+            <TableOne />
+          </Suspense>
         </ComponentCard>
         <ComponentCard title="Basic Table 2">
           <TableTwo />

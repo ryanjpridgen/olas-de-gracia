@@ -23,5 +23,5 @@
       "persistent": true
     }
   },
-  "globalEnv": ["ENVIRONMENT"]
+  "globalEnv": ["ENVIRONMENT", "CLOUDFLARE_API_TOKEN", "CLOUDFLARE_ACCOUNT_ID", "D1_DATABASE_ID" ]
 }

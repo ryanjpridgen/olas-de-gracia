@@ -18,8 +18,8 @@ export default defineConfig({
         id: process.env.D1_DATABASE_ID,
         name: `odg-${process.env.ENVIRONMENT}`,
         dev: {
-          remote: true
-        }
+          remote: true,
+        },
       }),
     },
     previewUrls: true,

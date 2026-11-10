@@ -9,28 +9,20 @@ import { TableCell, TableRow } from "@/components/ui/table";
 import { Order } from "./types";
 
 export interface TableOneRowProps {
-  order: Order;
+  language: string;
+  name: string;
+  source_url: string;
 }
 
-export function TableOneUserCell({ user }: { user: Order["user"] }) {
-  const initials = user.name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .slice(0, 2);
-
+export function TableOneUserCell({ language, source_url }: TableOneRowProps) {
   return (
     <div className="flex items-center gap-3">
-      <Avatar size="default">
-        <AvatarImage src={user.image} alt={user.name} />
-        <AvatarFallback>{initials}</AvatarFallback>
-      </Avatar>
       <div>
         <span className="block text-sm font-medium text-gray-800 dark:text-white/90">
-          {user.name}
+          {language}
         </span>
         <span className="block text-xs text-gray-500 dark:text-gray-400">
-          {user.role}
+          {source_url}
         </span>
       </div>
     </div>
@@ -67,9 +59,7 @@ export function TableOneStatusBadge({ status }: { status: string }) {
 export default function TableOneRow({ order }: TableOneRowProps) {
   return (
     <TableRow className="transition hover:bg-gray-50/50 dark:hover:bg-white/2">
-      <TableCell className="px-5 py-4 text-start sm:px-6">
-        <TableOneUserCell user={order.user} />
-      </TableCell>
+      <TableCell className="px-5 py-4 text-start sm:px-6"></TableCell>
       <TableCell className="px-5 py-4 text-start text-sm text-gray-500 sm:px-6 dark:text-gray-400">
         {order.projectName}
       </TableCell>
