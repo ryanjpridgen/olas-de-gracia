@@ -1,5 +1,6 @@
 import { unzipSync } from "fflate";
-import { parseUsfm, type NewBibleVerse } from "./bible";
+import { BibleVerse, parseUsfm, type NewBibleVerse } from "./bible";
+import { env } from "cloudflare:workers"
 
 const MAX_ARCHIVE_BYTES = 100 * 1024 * 1024;
 const MAX_TOTAL_UNCOMPRESSED_BYTES = 50 * 1024 * 1024;
@@ -198,15 +199,15 @@ async function readArchive(response: Response): Promise<ArrayBuffer> {
   return buffer.buffer;
 }
 
-export async function ingestTranslation(db: D1Database, translationId: string) {
-  const translation = await db
+export async function fetchSource(translationId: string) {
+  const translation = await env.DB
     .prepare("SELECT id, source_url FROM translations WHERE id = ?")
     .bind(translationId)
     .first<TranslationSource>();
   if (!translation?.source_url)
     throw new Error("Translation has no source URL");
 
-  await db
+  await env.DB
     .prepare(
       `UPDATE translation_ingestions
        SET status = 'processing', total_verses = 0, inserted_verses = 0,
@@ -219,7 +220,11 @@ export async function ingestTranslation(db: D1Database, translationId: string) {
   const response = await fetch(translation.source_url);
   if (!response.ok)
     throw new Error(`Source download failed with HTTP ${response.status}`);
-  const verses = extractVerses(await readArchive(response), translationId);
+  
+  return extractVerses(await readArchive(response), translationId);
+}
+
+export async function ingestTranslation(db: D1Database, translationId: string, verses: NewBibleVerse[]) {
   const now = new Date().toISOString();
   await db
     .prepare(

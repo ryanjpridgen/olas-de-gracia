@@ -9,7 +9,10 @@ import { createTranslation, type TranslationFormState } from "../actions";
 const initialState: TranslationFormState = {};
 
 export default function TranslationForm() {
-  const [state, formAction, pending] = useActionState(createTranslation, initialState);
+  const [state, formAction, pending] = useActionState(
+    createTranslation,
+    initialState,
+  );
 
   return (
     <form action={formAction} className="space-y-5">
@@ -30,27 +33,55 @@ export default function TranslationForm() {
         </Field>
         <Field>
           <FieldLabel htmlFor="name">Name</FieldLabel>
-          <Input id="name" name="name" required placeholder="King James Version" />
+          <Input
+            id="name"
+            name="name"
+            required
+            placeholder="King James Version"
+          />
           <FieldError>{state.errors?.name?.[0]}</FieldError>
         </Field>
         <Field>
           <FieldLabel htmlFor="abbreviation">Abbreviation</FieldLabel>
-          <Input id="abbreviation" name="abbreviation" required placeholder="KJV" />
+          <Input
+            id="abbreviation"
+            name="abbreviation"
+            required
+            placeholder="KJV"
+          />
           <FieldError>{state.errors?.abbreviation?.[0]}</FieldError>
         </Field>
         <Field>
           <FieldLabel htmlFor="license">License</FieldLabel>
-          <Input id="license" name="license" required placeholder="Public domain" />
+          <Input
+            id="license"
+            name="license"
+            required
+            placeholder="Public domain"
+          />
           <FieldError>{state.errors?.license?.[0]}</FieldError>
         </Field>
         <Field>
           <FieldLabel htmlFor="sourceUrl">Source URL (optional)</FieldLabel>
-          <Input id="sourceUrl" name="sourceUrl" type="url" placeholder="https://example.com/bible" />
+          <Input
+            id="sourceUrl"
+            name="sourceUrl"
+            type="url"
+            placeholder="https://example.com/bible"
+          />
           <FieldError>{state.errors?.sourceUrl?.[0]}</FieldError>
         </Field>
         <Field>
           <FieldLabel htmlFor="version">Version</FieldLabel>
-          <Input id="version" name="version" type="number" min="1" step="1" required defaultValue="1" />
+          <Input
+            id="version"
+            name="version"
+            type="number"
+            min="1"
+            step="1"
+            required
+            defaultValue="1"
+          />
           <FieldError>{state.errors?.version?.[0]}</FieldError>
         </Field>
       </div>
