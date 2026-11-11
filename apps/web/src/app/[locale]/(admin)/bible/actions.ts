@@ -8,14 +8,30 @@ const translationSchema = z.object({
   language: z.enum(["en", "es"]),
   name: z.string().trim().min(1, "Enter a translation name."),
   abbreviation: z.string().trim().min(1, "Enter an abbreviation."),
-  sourceUrl: z.union([z.literal(""), z.string().trim().url("Enter a valid URL.")]),
+  sourceUrl: z.union([
+    z.literal(""),
+    z.string().trim().url("Enter a valid URL."),
+  ]),
   license: z.string().trim().min(1, "Enter a license."),
-  version: z.coerce.number().int().positive("Version must be a positive integer."),
+  version: z.coerce
+    .number()
+    .int()
+    .positive("Version must be a positive integer."),
   active: z.boolean(),
 });
 
 export type TranslationFormState = {
-  errors?: Partial<Record<"language" | "name" | "abbreviation" | "sourceUrl" | "license" | "version", string[]>>;
+  errors?: Partial<
+    Record<
+      | "language"
+      | "name"
+      | "abbreviation"
+      | "sourceUrl"
+      | "license"
+      | "version",
+      string[]
+    >
+  >;
   message?: string;
 };
 
@@ -42,15 +58,16 @@ export async function createTranslation(
 
   const translation = parsed.data;
   const now = new Date().toISOString();
+  const translationId = crypto.randomUUID();
 
   try {
-    await env.DB.prepare(
-      `INSERT INTO translations
-       (id, language, name, abbreviation, source_url, license, version, active, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    )
-      .bind(
-        crypto.randomUUID(),
+    await env.DB.batch([
+      env.DB.prepare(
+        `INSERT INTO translations
+         (id, language, name, abbreviation, source_url, license, version, active, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ).bind(
+        translationId,
         translation.language,
         translation.name,
         translation.abbreviation,
@@ -60,11 +77,36 @@ export async function createTranslation(
         translation.active ? 1 : 0,
         now,
         now,
-      )
-      .run();
+      ),
+      ...(translation.sourceUrl
+        ? [
+            env.DB.prepare(
+              `INSERT INTO translation_ingestions
+               (translation_id, status, created_at, updated_at)
+               VALUES (?, 'pending', ?, ?)`,
+            ).bind(translationId, now, now),
+          ]
+        : []),
+    ]);
+
+    if (translation.sourceUrl) {
+      try {
+        await env.BIBLE_INGESTION_QUEUE.send({ translationId });
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Queue unavailable";
+        await env.DB.prepare(
+          `UPDATE translation_ingestions SET status = 'failed', error_message = ?, updated_at = ?
+           WHERE translation_id = ?`,
+        )
+          .bind(message.slice(0, 1000), new Date().toISOString(), translationId)
+          .run();
+      }
+    }
   } catch {
     return {
-      message: "Could not save this translation. The language and abbreviation may already exist.",
+      message:
+        "Could not save this translation. The language and abbreviation may already exist.",
     };
   }
 
