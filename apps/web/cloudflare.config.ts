@@ -25,7 +25,7 @@ export default defineConfig({
       }),
       BIBLE_INGESTION_QUEUE: bindings.queue({ name: bibleIngestionQueue }),
     },
-    triggers: [
+    triggers: process.env.ENVIRONMENT !== "production" ? undefined : [
       triggers.queue({
         name: bibleIngestionQueue,
         maxBatchSize: 1,
