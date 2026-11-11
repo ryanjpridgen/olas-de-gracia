@@ -81,7 +81,7 @@ const BOOK_IDS = [
 
 type TranslationSource = { id: string; source_url: string };
 
-function getBookNumber(content: string, filename: string): number {
+function getBookNumber(content: string, filename: string): number | null {
   const parsed = parseUsfm(content);
   const headerId = parsed.headers
     .find(({ tag }) => tag === "id")
@@ -94,6 +94,9 @@ function getBookNumber(content: string, filename: string): number {
     ?.replace(/\.usfm$/i, "")
     .toUpperCase();
   const bookId = headerId || filenameId;
+  // FRT is a USFM front-matter file, not one of the canonical Bible books.
+  // Archives commonly include it alongside the 66 books, so ignore it.
+  if (bookId === "FRT") return null;
   const bookNumber = BOOK_IDS.indexOf(bookId ?? "") + 1;
   if (bookNumber === 0)
     throw new Error(`Unknown USFM book identifier: ${bookId ?? filename}`);
@@ -142,6 +145,7 @@ function extractVerses(
     }
 
     const bookNumber = getBookNumber(content, filename);
+    if (bookNumber === null) continue;
     const parsed = parseUsfm(content);
     for (const [chapterKey, chapter] of Object.entries(parsed.chapters)) {
       const chapterNumber = Number.parseInt(chapterKey, 10);
