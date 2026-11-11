@@ -19,6 +19,13 @@ resource "cloudflare_d1_database" "odg" {
   jurisdiction = "us"
 }
 
+resource "cloudflare_workflow" "ingestion_workflow" {
+  account_id = var.cloudflare_account_id
+  workflow_name = "bible-ingestion-${var.environment}"
+  class_name = "BibleIngestionWorkflow"
+  script_name = "olas-de-gracia"
+}
+
 output "database_id" {
   value = cloudflare_d1_database.odg.id
 }
