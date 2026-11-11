@@ -1,6 +1,6 @@
-import { bindings, defineConfig, defineWorker, triggers } from "cf/config";
+import { bindings, defineConfig, defineWorker, exports } from "cf/config";
 
-const bibleIngestionQueue = `bible-ingestion-${process.env.ENVIRONMENT ?? "development"}`;
+const bibleIngestionWorkflow = `bible-ingestion-${process.env.ENVIRONMENT ?? "development"}`;
 
 export default defineConfig({
   worker: defineWorker({
@@ -23,17 +23,18 @@ export default defineConfig({
           remote: true,
         },
       }),
-      BIBLE_INGESTION_QUEUE: bindings.queue({ name: bibleIngestionQueue }),
-    },
-    triggers: process.env.ENVIRONMENT !== "production" ? undefined : [
-      triggers.queue({
-        name: bibleIngestionQueue,
-        maxBatchSize: 1,
-        maxConcurrency: 2,
-        maxRetries: 5,
-        retryDelay: 30,
+      BIBLE_INGESTION_WORKFLOW: bindings.workflow({
+        name: bibleIngestionWorkflow,
+        worker: "olas-de-gracia",
+        exportName: "BibleIngestionWorkflow",
       }),
-    ],
+    },
+    exports: {
+      BibleIngestionWorkflow: exports.workflow({
+        name: bibleIngestionWorkflow,
+        concurrency: { limit: 2 },
+      }),
+    },
     previewUrls: true,
   }),
 });

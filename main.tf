@@ -19,11 +19,6 @@ resource "cloudflare_d1_database" "odg" {
   jurisdiction = "us"
 }
 
-resource "cloudflare_queue" "bible_ingestion" {
-  account_id = var.cloudflare_account_id
-  queue_name       = "bible-ingestion-${var.environment}"
-}
-
 output "database_id" {
   value = cloudflare_d1_database.odg.id
 }
