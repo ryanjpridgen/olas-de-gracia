@@ -34,7 +34,7 @@ export interface BibleVerse {
 export type NewBibleVerse = Omit<BibleVerse, "id">;
 
 export interface ParsedUSFM {
-  headers: Record<string, {}>;
+  headers: Array<{ tag: string; content: string }>;
   chapters: Record<
     string,
     Record<
@@ -46,9 +46,14 @@ export interface ParsedUSFM {
   >;
 }
 
+export interface ParsedUsfmText {
+  headers: Array<{ tag: string; content: string }>;
+  chapters: Record<string, Record<string, string>>;
+}
+
 interface VerseObject {
   text: string;
-  type: "word" | "footnote";
+  type: string;
 }
 
 function joinVerse(verseObjects: VerseObject[]) {
@@ -65,28 +70,21 @@ function normalizeBibleText(text: string): string {
   return text;
 }
 
-export function parseUsfm(content: string) {
+export function parseUsfm(content: string): ParsedUsfmText {
   const parsed = toJSON(content) as ParsedUSFM;
-  // const books = parsed.filter((book) => Object.keys(book).length)
-  return {
-    ...parsed,
-    chapters: Object.keys(parsed.chapters).reduce(
-      (obj, key) =>
-        isNaN(parseInt(key))
-          ? obj
-          : {
-              ...obj,
-              [key]: Object.entries(parsed.chapters[key]).reduce(
-                (verses, [verse, { verseObjects }]) =>
-                  isNaN(parseInt(verse))
-                    ? verses
-                    : { ...verses, [verse]: joinVerse(verseObjects) },
-                {},
-              ),
-            },
-      {},
-    ),
-  };
+  const chapters: ParsedUsfmText["chapters"] = {};
+
+  for (const [chapter, rawVerses] of Object.entries(parsed.chapters ?? {})) {
+    if (!/^\d+$/.test(chapter)) continue;
+    const verses: Record<string, string> = {};
+    for (const [verse, { verseObjects }] of Object.entries(rawVerses ?? {})) {
+      if (!/^\d+$/.test(verse)) continue;
+      verses[verse] = joinVerse(verseObjects);
+    }
+    chapters[chapter] = verses;
+  }
+
+  return { headers: parsed.headers ?? [], chapters };
 }
 
 export async function writeVerses(verses: NewBibleVerse[]) {
@@ -99,31 +97,39 @@ export async function writeVerses(verses: NewBibleVerse[]) {
       book_number,
       chapter,
       verse,
-      text
+      text,
+      created_at
     )
-    VALUES (?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT (translation_id, book_number, chapter, verse)
     DO UPDATE SET
       text = excluded.text
   `);
 
-  return env.DB.batch(
-    verses.map((verse) => {
-      const id = [
-        verse.translation_id,
-        verse.book_number,
-        verse.chapter,
-        verse.verse,
-      ].join("-");
+  const results = [];
+  for (let offset = 0; offset < verses.length; offset += 100) {
+    results.push(
+      ...(await env.DB.batch(
+        verses.slice(offset, offset + 100).map((verse) => {
+          const id = [
+            verse.translation_id,
+            verse.book_number,
+            verse.chapter,
+            verse.verse,
+          ].join("-");
 
-      return statement.bind(
-        id,
-        verse.translation_id,
-        verse.book_number,
-        verse.chapter,
-        verse.verse,
-        verse.text,
-      );
-    }),
-  );
+          return statement.bind(
+            id,
+            verse.translation_id,
+            verse.book_number,
+            verse.chapter,
+            verse.verse,
+            verse.text,
+            new Date().toISOString(),
+          );
+        }),
+      )),
+    );
+  }
+  return results;
 }

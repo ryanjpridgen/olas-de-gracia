@@ -28,6 +28,11 @@ export const navItems: NavItem[] = [
     path: "/profile",
   },
   {
+    icon: <PageIcon className="size-6" />,
+    key: "bible",
+    path: "/bible",
+  },
+  {
     key: "forms",
     icon: <ListIcon className="size-6" />,
     subItems: [{ key: "formElements", path: "/form-elements", pro: false }],

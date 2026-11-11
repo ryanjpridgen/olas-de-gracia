@@ -8,12 +8,7 @@ const MAX_TOTAL_UNCOMPRESSED_BYTES = 50 * 1024 * 1024;
 const MAX_USFM_FILE_BYTES = 5 * 1024 * 1024;
 const MAX_ARCHIVE_ENTRIES = 2_000;
 
-interface ExtractedUsfmFile {
-  filename: string;
-  text: string;
-}
-
-function extractUsfmFiles(buffer: Buffer): ExtractedUsfmFile[] {
+function extractUsfmFiles(buffer: Buffer) {
   // Decompress the ZIP archive in memory.
   const entries = unzipSync(new Uint8Array(buffer));
 
