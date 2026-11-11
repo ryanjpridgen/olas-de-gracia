@@ -91,10 +91,13 @@ export async function createTranslation(
 
     if (translation.sourceUrl) {
       try {
-        await env.BIBLE_INGESTION_QUEUE.send({ translationId });
+        await env.BIBLE_INGESTION_WORKFLOW.create({
+          id: translationId,
+          params: { translationId },
+        });
       } catch (error) {
         const message =
-          error instanceof Error ? error.message : "Queue unavailable";
+          error instanceof Error ? error.message : "Workflow unavailable";
         await env.DB.prepare(
           `UPDATE translation_ingestions SET status = 'failed', error_message = ?, updated_at = ?
            WHERE translation_id = ?`,
