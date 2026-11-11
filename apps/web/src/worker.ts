@@ -1,6 +1,6 @@
 import app from "vinext/server/fetch-handler";
 import { ingestTranslation, markIngestionFailed } from "./lib/bible-ingestion";
-import { WorkflowEntrypoint } from "cloudflare:workers";
+import { type WorkflowEvent, WorkflowEntrypoint, WorkflowStep } from "cloudflare:workers";
 
 type IngestionParams = { translationId: string };
 
