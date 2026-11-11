@@ -23,7 +23,7 @@ resource "cloudflare_d1_database" "odg" {
 
 resource "cloudflare_queue" "bible_ingestion" {
   account_id = var.cloudflare_account_id
-  name       = "bible-ingestion-${var.environment}"
+  queue_name       = "bible-ingestion-${var.environment}"
 }
 
 output "database_id" {
