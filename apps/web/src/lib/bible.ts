@@ -87,6 +87,19 @@ export function parseUsfm(content: string): ParsedUsfmText {
   return { headers: parsed.headers ?? [], chapters };
 }
 
+export function chunk(size: number) {
+  return function chunkFn<T>(arr: T[], chunks: T[][] = []) {
+    if (arr.length - 1 < size) {
+      return function* () {
+        for (const chunk of [...chunks, arr]) {
+          yield chunk;
+        }
+      }
+    }
+    return chunkFn(arr.slice(size, arr.length - 1), [...chunks, arr.slice(0, size)])
+  }
+}
+
 export async function writeVerses(verses: NewBibleVerse[]) {
   if (verses.length === 0) return [];
 

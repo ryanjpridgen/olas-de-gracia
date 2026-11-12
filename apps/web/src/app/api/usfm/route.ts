@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { unzipSync } from "fflate";
 import Z from "zod";
+import { fetchSource } from "@/lib/bible-ingestion";
+import { writeVerses } from "@/lib/bible"
 
 const MAX_UPLOAD_BYTES = 100 * 1024 * 1024; // 100 MB
 const MAX_TOTAL_UNCOMPRESSED_BYTES = 50 * 1024 * 1024;
@@ -69,6 +71,12 @@ function extractUsfmFiles(buffer: Buffer): ExtractedUsfmFile[] {
 const requestBody = Z.object({
   url: Z.url(),
 });
+
+export async function GET(request: NextRequest) {
+  const verses = await fetchSource("es-rv1909")
+  await writeVerses(verses)
+  return Response.json([verses[0], verses[Math.round(verses.length / 2)]])
+}
 
 export async function POST(request: NextRequest) {
   try {

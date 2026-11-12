@@ -20,6 +20,6 @@
     "next.config.js",
     ".next/types/**/*.ts",
     ".cloudflare/types"
-  ],
+, "scripts/vector.mjs"  ],
   "exclude": ["node_modules"]
 }

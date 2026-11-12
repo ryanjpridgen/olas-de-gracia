@@ -1,6 +1,7 @@
 import { unzipSync } from "fflate";
 import { BibleVerse, parseUsfm, type NewBibleVerse } from "./bible";
 import { env } from "cloudflare:workers"
+import { ZodUndefinedDef } from "zod/v3";
 
 const MAX_ARCHIVE_BYTES = 100 * 1024 * 1024;
 const MAX_TOTAL_UNCOMPRESSED_BYTES = 50 * 1024 * 1024;
@@ -81,7 +82,7 @@ const BOOK_IDS = [
 
 type TranslationSource = { id: string; source_url: string };
 
-function getBookNumber(content: string, filename: string): number | null {
+function getBookNumber(content: string, filename: string): number | undefined {
   const parsed = parseUsfm(content);
   const headerId = parsed.headers
     .find(({ tag }) => tag === "id")
@@ -94,19 +95,17 @@ function getBookNumber(content: string, filename: string): number | null {
     ?.replace(/\.usfm$/i, "")
     .toUpperCase();
   const bookId = headerId || filenameId;
-  // FRT is a USFM front-matter file, not one of the canonical Bible books.
-  // Archives commonly include it alongside the 66 books, so ignore it.
-  if (bookId === "FRT") return null;
   const bookNumber = BOOK_IDS.indexOf(bookId ?? "") + 1;
   if (bookNumber === 0)
-    throw new Error(`Unknown USFM book identifier: ${bookId ?? filename}`);
+    return undefined
+    // throw new Error(`Unknown USFM book identifier: ${bookId ?? filename}`);
   return bookNumber;
 }
 
-function extractVerses(
+async function extractVerses(
   buffer: ArrayBuffer,
   translationId: string,
-): NewBibleVerse[] {
+): Promise<NewBibleVerse[]> {
   if (buffer.byteLength === 0 || buffer.byteLength > MAX_ARCHIVE_BYTES) {
     throw new Error("Source archive is empty or exceeds the 100 MB limit");
   }
@@ -135,7 +134,11 @@ function extractVerses(
     throw new Error("No .usfm files found in the source ZIP");
 
   const decoder = new TextDecoder("utf-8", { fatal: true });
-  const verses: NewBibleVerse[] = [];
+  
+  const books = await env.DB.prepare("SELECT id, abbreviation_en, abbreviation_es FROM bible_books").all()
+
+  const verses: NewBibleVerse[] = []
+
   for (const [filename, bytes] of files) {
     let content: string;
     try {
@@ -144,9 +147,14 @@ function extractVerses(
       throw new Error(`Invalid UTF-8 encoding in file: ${filename}`);
     }
 
-    const bookNumber = getBookNumber(content, filename);
-    if (bookNumber === null) continue;
     const parsed = parseUsfm(content);
+    const book = await env.AI.run("@cf/meta/llama-4-scout-17b-16e-instruct", {
+      messages: [
+        {role:"user",content:`Given the headers\n\n${JSON.stringify(parsed.headers)}\n\nDetermine which of the following books it belongs to:\n\n${JSON.stringify(books.results)}\n\nChoose one single element and respond with it's id value. Your response should always be a number - do not include anything else other than the answer.`}
+      ]
+    })
+    const bookId = parseInt(book.response)
+
     for (const [chapterKey, chapter] of Object.entries(parsed.chapters)) {
       const chapterNumber = Number.parseInt(chapterKey, 10);
       if (!Number.isInteger(chapterNumber) || chapterNumber < 1) continue;
@@ -156,7 +164,7 @@ function extractVerses(
           continue;
         verses.push({
           translation_id: translationId,
-          book_number: bookNumber,
+          book_number: bookId,
           chapter: chapterNumber,
           verse: verseNumber,
           text: text.trim(),
@@ -238,6 +246,7 @@ export async function ingestTranslation(db: D1Database, translationId: string, v
     .bind(verses.length, now, translationId)
     .run();
 
+    
   for (let offset = 0; offset < verses.length; offset += INSERT_BATCH_SIZE) {
     const batch = verses.slice(offset, offset + INSERT_BATCH_SIZE);
     const statements = batch.map((verse) =>

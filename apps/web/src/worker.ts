@@ -19,10 +19,10 @@ export class BibleIngestionWorkflow extends WorkflowEntrypoint<
         return fetchSource(event.payload.translationId)
       })
 
-      const ingest = await step.do(
+      /**const ingest = await step.do(
         "ingest translation",
         () => ingestTranslation(env.DB, event.payload.translationId, documents),
-      );
+      );*/
 
       return ingest
     } catch (error) {

@@ -23,11 +23,22 @@ export default defineConfig({
           remote: true,
         },
       }),
+      DB_VECTOR: bindings.vectorize({
+        name: `waves-of-grace-verses-en-${process.env.ENVIRONMENT}`,
+        dev: {
+          remote: process.env.REMOTE_DEV === "true"
+        }
+      }),
       BIBLE_INGESTION_WORKFLOW: bindings.workflow({
         name: bibleIngestionWorkflow,
         worker: "olas-de-gracia",
         exportName: "BibleIngestionWorkflow",
       }),
+      AI: bindings.ai({
+        dev: {
+          remote: true
+        }
+      })
     },
     exports: {
       BibleIngestionWorkflow: exports.workflow({

@@ -10,13 +10,22 @@
     "check-types": "turbo run check-types"
   },
   "devDependencies": {
+    "bun": "^1.4.4",
     "prettier": "3.9.6",
     "turbo": "^2.11.10",
     "typescript": "7.0.2",
-    "wrangler": "^4.158.0"
+    "wrangler": "^4.160.0"
   },
-  "packageManager": "pnpm@11.25.0",
   "engines": {
     "node": ">=24"
+  },
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "12.16.1"
+    }
+  },
+  "dependencies": {
+    "@types/bun": "^1.4.4"
   }
 }
