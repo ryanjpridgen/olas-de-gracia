@@ -3,7 +3,7 @@ import { unzipSync } from "fflate";
 import Z from "zod";
 import { fetchSource } from "@/lib/bible-ingestion";
 import { writeVerses } from "@/lib/bible"
-
+import { env } from "cloudflare:workers"
 const MAX_UPLOAD_BYTES = 100 * 1024 * 1024; // 100 MB
 const MAX_TOTAL_UNCOMPRESSED_BYTES = 50 * 1024 * 1024;
 const MAX_USFM_FILE_BYTES = 5 * 1024 * 1024;

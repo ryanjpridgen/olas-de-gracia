@@ -1,5 +1,6 @@
 import app from "vinext/server/fetch-handler";
 import { fetchSource, ingestTranslation, markIngestionFailed } from "./lib/bible-ingestion";
+import { writeVerses } from "@/lib/bible"
 import {
   type WorkflowEvent,
   WorkflowEntrypoint,
@@ -19,12 +20,21 @@ export class BibleIngestionWorkflow extends WorkflowEntrypoint<
         return fetchSource(event.payload.translationId)
       })
 
+      const humanValidation = await step.waitForEvent("await human validation", { 
+        type: "human-validation", 
+        timeout: "1 hour" 
+      })
+
+      const batch = await step.do("batch insert verses", async () => {
+        await writeVerses(documents)
+      })
+
       /**const ingest = await step.do(
         "ingest translation",
         () => ingestTranslation(env.DB, event.payload.translationId, documents),
       );*/
 
-      return ingest
+      return batch
     } catch (error) {
       await markIngestionFailed(
         this.env.DB,
